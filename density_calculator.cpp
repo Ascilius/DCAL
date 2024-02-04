@@ -8,9 +8,12 @@
 
 #define NUM_BODIES 40000 // TOFIX: make it easier for others to change
 
+#define BODY_MASS 500 // mass of each body in solar masses
+                      // distance/r is in kiloparsecs (kpc)
+
 // -----------------------------------------------------------------------------------------------------------------------------
 // for debugging
-const bool debug = true;
+const bool debug = false;
 const bool verbose = false;
 std::ostream& operator<<(std::ostream& out, const std::vector<double>& vec) {
 	out << "[ ";
@@ -81,8 +84,9 @@ void densify(const double& dr, std::vector<double>* hash_array) {
 		double A = 4 * M_PI * pow(r, 2);
 		double V = A * dr;
 
-		// calculating density (assuming all bodies are the same mass)
-		double rho = (*hash_array)[i] / V;
+		// calculating mass and density (assuming all bodies are the same mass)
+		double mass = (*hash_array)[i] * BODY_MASS;
+		double rho = mass / V;
 		(*hash_array)[i] = rho;
 	}
 }
@@ -145,13 +149,13 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 	// opening output file
 	std::ofstream output_file(output_filename);
 	if (!output_file.good()) {
-		std::cout << "ERROR: Unable to open \"" << output_filename << "\"!" << std::endl;
+		std::cout << "ERROR: Unable to write to \"" << output_filename << "\"!" << std::endl;
 		exit(1);
 	}
 
 	// writing to output file
 	std::cout << "Writing to \"" << output_filename << "\"...\n";
-	output_file << "dr, " << dr << "\n";
+	// output_file << "dr, " << dr << "\n";
 	output_file << "#, r, count\n";
 	int size = hash_array->size();
 	for (int i = 0; i < size; ++i)
@@ -163,9 +167,9 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 // -----------------------------------------------------------------------------------------------------------------------------
 int main(int argc, char** argv) {
 	// input checking
-	if (argc != 3 && argc != 4) {
+	if (argc != 3) {
 		std::cout << "ERROR: Invalid inputs\n";
-		std::cout << "Usage: ./density_calculator.exe [input file (.out)] [dr] [output file (.csv) (optional)]" << std::endl;
+		std::cout << "Usage: ./density_calculator.exe <input file (.out file)> <dr>" << std::endl;
 		return 1;
 	}
 
@@ -194,12 +198,9 @@ int main(int argc, char** argv) {
 	process_data(input_file, dr, hash_array);
 
 	// writing out to file
-	std::string output_filename;
-	if (argc != 4) {
-		std::cout << "Warning: No output filename specified.\n";
-		output_filename = "output.csv";
-	} else
-		output_filename = argv[3];
+	size_t i = input_filename.rfind('.');
+	std::string input_filetoken = input_filename.substr(0, i); // getting file name without .out ending
+	std::string output_filename = input_filetoken + "_dr" + std::to_string(dr) + ".csv"; // generating new file name
 	
 	if (debug and verbose)
 		std::cout << "Debug: output_filename: " << output_filename << "\n";
