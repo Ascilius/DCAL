@@ -156,7 +156,7 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 	// writing to output file
 	std::cout << "Writing to \"" << output_filename << "\"...\n";
 	// output_file << "dr, " << dr << "\n";
-	output_file << "#, r, count\n";
+	output_file << "#, r (kpc), density (M_sol/kpc^3)\n";
 	int size = hash_array->size();
 	for (int i = 0; i < size; ++i)
 		output_file << (i+1) << ", " << (i*dr) << ", " << (*hash_array)[i] << "\n";
