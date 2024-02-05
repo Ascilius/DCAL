@@ -92,7 +92,7 @@ void densify(const double& dr, std::vector<double>* hash_array) {
 }
 
 // actually processing data; TOFIX: jank
-void process_data(std::ifstream& input_file, const double& dr, std::vector<double>* hash_array) {
+void process_data(std::ifstream& input_file, const double& dr, std::vector<double>* hash_array, const bool& dark_matter) {
 	// getting rid of unused lines
 	std::string line;
 	std::getline(input_file, line); // <bodies>
@@ -124,7 +124,14 @@ void process_data(std::ifstream& input_file, const double& dr, std::vector<doubl
 
 	// filling hash array
 	for (int i = 0; i < NUM_BODIES; ++i) {
-		input_file >> token; // unused: # ignore
+		input_file >> token; // # ignore (baryonic/dark matter(?))
+		if (dark_matter) { // get only dark matter
+			if (token[0] == '0') {
+				std::getline(input_file, line); // clearing rest of line
+				continue; // skip baryonic matter
+			}
+		}
+
 		input_file >> token; // unused: id
 
 		add_body(input_file, dr, hash_array, cx, cy, cz);
@@ -167,9 +174,9 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 // -----------------------------------------------------------------------------------------------------------------------------
 int main(int argc, char** argv) {
 	// input checking
-	if (argc != 3) {
+	if (argc != 4) {
 		std::cout << "ERROR: Invalid inputs\n";
-		std::cout << "Usage: ./density_calculator.exe <input file (.out file)> <dr>" << std::endl;
+		std::cout << "Usage: ./density_calculator.exe <input file (.out file)> <dr> <dark_matter (1) | all matter (0)>" << std::endl;
 		return 1;
 	}
 
@@ -187,20 +194,26 @@ int main(int argc, char** argv) {
 
 	// parameters
 	const double dr = std::stod(argv[2]);
-	if (debug and verbose)
+	const bool dark_matter = std::stoi(argv[3]);
+	if (debug and verbose) {
 		std::cout << "Debug: dr: " << dr << "\n";
+		std::cout << "Debug: dark_matter: " << dark_matter << "\n";
+	}
 
 	// counting table
 	std::vector<double>* hash_array = new std::vector<double>();
 
 	// processing data
 	std::cout << "Reading \"" << input_filename << "\"...\n";
-	process_data(input_file, dr, hash_array);
+	process_data(input_file, dr, hash_array, dark_matter);
 
 	// writing out to file
 	size_t i = input_filename.rfind('.');
 	std::string input_filetoken = input_filename.substr(0, i); // getting file name without .out ending
-	std::string output_filename = input_filetoken + "_dr" + std::to_string(dr) + ".csv"; // generating new file name
+	i = input_filetoken.rfind('/');
+	if (i != std::string::npos)
+		input_filetoken = input_filetoken.substr(i + 1, input_filetoken.size() - (i + 1));
+	std::string output_filename = input_filetoken + "_dr" + std::string(argv[2]) + "_dm" + std::string(argv[3]) + ".csv"; // generating new file name
 	
 	if (debug and verbose)
 		std::cout << "Debug: output_filename: " << output_filename << "\n";

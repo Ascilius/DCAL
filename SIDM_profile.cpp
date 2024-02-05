@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-const bool debug = true;
+const bool debug = false;
 
 // -----------------------------------------------------------------------------------------------------------------------------
 // SIDM profile function

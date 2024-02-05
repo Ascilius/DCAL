@@ -8,6 +8,14 @@ A tool I wrote for calculating shell densities from .out files from [MilkyWay@ho
  - automate calculating and plotting
     - bash script?
 
+### v3
+ - added SIDM profile generator (SIDM_profile)
+    - just generates a bunch of points based on the piecewise SIDM profle function into a csv file
+ - added option for dark matter in density_calculator.cpp
+    - 1 is to calculate shell density for dark matter only
+    - 0 is the former normal calculation (all matter)
+ - density_calculator no longer outputs in the directory the input file is in, now outputs in the current working directory
+
 ### v2
  - added units
     - each body is 500 solar masses and count is now multiplied by that 
