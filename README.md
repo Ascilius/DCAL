@@ -2,11 +2,22 @@
 A tool I wrote for calculating shell densities from .out files from [MilkyWay@home](https://github.com/Milkyway-at-home/milkywayathome_client)
 
 ### todo
- - add R plotter
-    - plots the densities in a column graph
-    - i already have it written i just need to add it to this repo
- - automate calculating and plotting
-    - bash script?
+ - fix run_dcal.sh
+    - flags won't work :(
+ - automate R plotting
+
+### v4
+ - polished density_calculator.cpp and SIDM_profile.cpp
+    - now uses Structural Mass Units (SMUs)
+    - outputs more information (bin range, shell radius/area/volume, count, mass)
+ - added Makefile
+ - density calculation and SIDM profiling is now automatic
+    - Usage: run_dcal.sh \<input .out file> \<dr> \[-h] \[-c]
+ - polished density_auto_calculator.cpp
+    - basically the same changes as density_calculator.cpp
+    - SIDM curve calculation is within this file
+ - added R plotting code
+    - added SIDM function plotting
 
 ### v3
  - added SIDM profile generator (SIDM_profile)

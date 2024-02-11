@@ -6,24 +6,18 @@
 #include <string>
 #include <vector>
 
-#define NUM_BODIES 40000 // TOFIX: make it easier for others to change
-
-#define BODY_MASS 500 // mass of each body in solar masses
-                      // distance/r is in kiloparsecs (kpc)
+const int NUM_BODIES = 40000; // TOFIX: make it easier for others to change
+const double BODY_MASS = 0.0006;	// mass of each body in solar masses
+									// distance/r is in kiloparsecs (kpc)
 
 // -----------------------------------------------------------------------------------------------------------------------------
 // for debugging
-const bool debug = false;
+const bool debug = true;
 const bool verbose = false;
-std::ostream& operator<<(std::ostream& out, const std::vector<double>& vec) {
-	out << "[ ";
-	int size = vec.size();
-	for (int i = 0; i < size; ++i) {
-		if (i != 0)
-			out << ", ";
-		out << vec[i];
-	}
-	out << " ]";
+std::ostream& operator<<(std::ostream& out, double** data) {
+	out << "r, v_los";
+	for (int i = 0; i < NUM_BODIES; ++i)
+		out << "\n" << data[0][i] << ", " << data[1][i];
 	return out;
 }
 
@@ -48,7 +42,7 @@ double get_coord(std::ifstream& input_file) {
 }
 
 // adding body to hash array
-void add_body(std::ifstream& input_file, const double& dr, std::vector<double>* hash_array, const double& cx, const double& cy, const double& cz) {
+void add_body(std::ifstream& input_file, double** data, const int i, const double& cx, const double& cy, const double& cz) {
 	// getting body coords
 	double x = get_coord(input_file);
 	double y = get_coord(input_file);
@@ -59,40 +53,12 @@ void add_body(std::ifstream& input_file, const double& dr, std::vector<double>* 
 	// calculating r
 	double r = sqrt(pow(x-cx, 2) + pow(y-cy, 2) + pow(z-cz, 2));
 	if (debug and verbose)
-		std::cout << "Debug: r: " << r << "\n";
-
-	// hashing
-	int i = int(r / dr);
-	if (debug and verbose)
-		std::cout << "Debug: i: " << i << "\n";
-
-	// adding to array
-	while (i > int(hash_array->size()) - 1) { // adding new histogram section/bar/whatever its called
-		hash_array->push_back(0.0);
-		if (debug and verbose)
-			std::cout << "Debug: New section added.\n";
-	}
-	(*hash_array)[i] += 1.0; // incrementing
-}
-
-// calculates the density for each shell and replaces the values in the hash array
-void densify(const double& dr, std::vector<double>* hash_array) {
-	int size = hash_array->size();
-	for (int i = 0; i < size; ++i) {
-		// calculating volume
-		double r = dr * (i+1);
-		double A = 4 * M_PI * pow(r, 2);
-		double V = A * dr;
-
-		// calculating mass and density (assuming all bodies are the same mass)
-		double mass = (*hash_array)[i] * BODY_MASS;
-		double rho = mass / V;
-		(*hash_array)[i] = rho;
-	}
+		std::cout << "\tDebug: r: " << r << "\n";
+	data[0][i] = r;
 }
 
 // actually processing data; TOFIX: jank
-void process_data(std::ifstream& input_file, const double& dr, std::vector<double>* hash_array, const bool& dark_matter) {
+void process_data(std::ifstream& input_file, double** data) {
 	// getting rid of unused lines
 	std::string line;
 	std::getline(input_file, line); // <bodies>
@@ -105,7 +71,7 @@ void process_data(std::ifstream& input_file, const double& dr, std::vector<doubl
 	input_file >> token; // =
 	input_file >> token; // 0/1
 	if (std::stoi(token) == 1)
-		std::cout << "Warning: Null potential detected.\n";
+		std::cout << "Warning: Milky Way potential detected.\n";
 	
 	// getting center of mass
 	double cx, cy, cz;
@@ -122,36 +88,42 @@ void process_data(std::ifstream& input_file, const double& dr, std::vector<doubl
 	std::getline(input_file, line); // centerOfMomentum = ...
 	std::getline(input_file, line); // # ignore   id   x   y   z   l   b   r   v_x   v_y   v_z   mass   v_los
 
-	// filling hash array
+	// filling data table
 	for (int i = 0; i < NUM_BODIES; ++i) {
-		input_file >> token; // # ignore (baryonic/dark matter(?))
-		if (dark_matter) { // get only dark matter
-			if (token[0] == '0') {
-				std::getline(input_file, line); // clearing rest of line
-				continue; // skip baryonic matter
-			}
-		}
+		if (debug and verbose)
+			std::cout << "Debug: i: " << i << "\n";
 
+		input_file >> token; // unused: # ignore
 		input_file >> token; // unused: id
 
-		add_body(input_file, dr, hash_array, cx, cy, cz);
+		add_body(input_file, data, i, cx, cy, cz);
 
-		std::getline(input_file, line); // clearing rest of line
+		input_file >> token; // unused: l
+		input_file >> token; // unused: b
+		input_file >> token; // unused: r
+		input_file >> token; // unused: v_x
+		input_file >> token; // unused: v_y
+		input_file >> token; // unused: v_z
+		input_file >> token; // unused: mass
+		
+		// radial velocity (?)
+		input_file >> token; // v_los
+		double v_los = std::stod(token);
+		data[1][i] = v_los;
+		if (debug and verbose)
+			std::cout << "\tDebug: v_los: " << v_los << "\n";
 	}
 
 	// done reading; closing input file
 	input_file.close();
-
-	// calculating densities
-	densify(dr, hash_array);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------
 // outputting
 
-void output_hist(const double& dr, std::vector<double>* hash_array, std::string& output_filename) {
-	if (debug)
-		std::cout << "Debug: hash_array: " << *hash_array << "\n";
+void output_data(const std::string& output_filename, double** data) {
+	if (debug and verbose)
+		std::cout << "Debug: data:\n" << data << "\n";
 
 	// opening output file
 	std::ofstream output_file(output_filename);
@@ -162,11 +134,9 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 
 	// writing to output file
 	std::cout << "Writing to \"" << output_filename << "\"...\n";
-	// output_file << "dr, " << dr << "\n";
-	output_file << "#, r (kpc), density (M_sol/kpc^3)\n";
-	int size = hash_array->size();
-	for (int i = 0; i < size; ++i)
-		output_file << (i+1) << ", " << (i*dr) << ", " << (*hash_array)[i] << "\n";
+	output_file << "r (kpc), v_los (kpc/s)\n";
+	for (int i = 0; i < NUM_BODIES; ++i)
+		output_file << data[0][i] << ", " << data[1][i] << "\n";
 
 	output_file.close(); // done writing; close
 }
@@ -174,9 +144,9 @@ void output_hist(const double& dr, std::vector<double>* hash_array, std::string&
 // -----------------------------------------------------------------------------------------------------------------------------
 int main(int argc, char** argv) {
 	// input checking
-	if (argc != 4) {
+	if (argc != 2) {
 		std::cout << "ERROR: Invalid inputs\n";
-		std::cout << "Usage: ./density_calculator.exe <input file (.out file)> <dr> <dark_matter (1) | all matter (0)>" << std::endl;
+		std::cout << "Usage: ./radvelocity_calculator.exe <input file (.out file)>" << std::endl;
 		return 1;
 	}
 
@@ -192,20 +162,14 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	// parameters
-	const double dr = std::stod(argv[2]);
-	const bool dark_matter = std::stoi(argv[3]);
-	if (debug and verbose) {
-		std::cout << "Debug: dr: " << dr << "\n";
-		std::cout << "Debug: dark_matter: " << dark_matter << "\n";
-	}
-
-	// counting table
-	std::vector<double>* hash_array = new std::vector<double>();
+	// data table
+	double** data = new double*[2];
+	data[0] = new double[NUM_BODIES];
+	data[1] = new double[NUM_BODIES];
 
 	// processing data
 	std::cout << "Reading \"" << input_filename << "\"...\n";
-	process_data(input_file, dr, hash_array, dark_matter);
+	process_data(input_file, data);
 
 	// writing out to file
 	size_t i = input_filename.rfind('.');
@@ -213,12 +177,12 @@ int main(int argc, char** argv) {
 	i = input_filetoken.rfind('/');
 	if (i != std::string::npos)
 		input_filetoken = input_filetoken.substr(i + 1, input_filetoken.size() - (i + 1));
-	std::string output_filename = input_filetoken + "_dr" + std::string(argv[2]) + "_dm" + std::string(argv[3]) + ".csv"; // generating new file name
+	std::string output_filename = input_filetoken + ".csv"; // generating new file name
 	
 	if (debug and verbose)
 		std::cout << "Debug: output_filename: " << output_filename << "\n";
 	
-	output_hist(dr, hash_array, output_filename);
+	output_data(output_filename, data);
 
 	// successful process
 	std::cout << "Done!" << std::endl;
