@@ -116,7 +116,7 @@ void Frame::analyze(const bool& debug, const bool& verbose) {
 
   // ---------------------------------------------------------------------------
   // calculating other bin data
-  std::cout << "\nCalculating...\nCrunching the numbers...\nDotting our i's and t's...\n";
+  std::cout << "\nCalculating...\nCrunching the numbers...\nDotting our i's and crossing our t's...\n";
   for (int i = 0; i < n_bins; ++i) {
   	Bin* bin = &(histogram[i]);
   	
@@ -168,10 +168,10 @@ void Frame::analyze(const bool& debug, const bool& verbose) {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 // TODO: outputting to csv file
-void Frame::output_csv() {
+void Frame::output_csv(const std::string dr_str) {
 	// generating output file name
 	size_t i = input_filename.rfind('/');
-	std::string output_filename = "output/" + input_filename.substr(i+1) + "_dr" + std::to_string(dr) + ".csv";
+	std::string output_filename = "output/" + input_filename.substr(i+1) + "_dr" + dr_str + ".csv";
 	
 	// opening file
 	std::ofstream output_file(output_filename);

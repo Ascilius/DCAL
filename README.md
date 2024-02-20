@@ -6,6 +6,8 @@ A set of tools for analyzing dwarf galaxies using .out files from [MilkyWay@home
  - fix run_dga.sh
     - flags won't work :(
  - automate R plotting immediate after DGA analysis
+ - optimize: generate Plummer and SIDM curves once, output in separate file
+ - figure out how to adjust graph headers
 
 ### v5
  - project renamed to Dwarf Galaxy Analyzer (DGA)
@@ -22,6 +24,7 @@ A set of tools for analyzing dwarf galaxies using .out files from [MilkyWay@home
          2. baryonic matter: baryonic body count, baryonic mass, baryonic density, Plummer mass, Plummer density
          3. same as 2 but for dark matter (and Plummer model is replaced with SIDM model)
          4. same as 2 but the sum of 2 and 3 (Plummer and SIDM models are just added on top of each other)
+ - updated R plotter to now plot 6 graphs (baryonic mass/density, dark matter mass/density, baryonic+dark mass/density) 
 
 ### v4
  - polished density_calculator.cpp and SIDM_profile.cpp

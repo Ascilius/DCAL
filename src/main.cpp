@@ -11,8 +11,8 @@ int main(int argc, char** argv) {
   // input checking
   if (argc < 3 or 8 < argc) {
     std::cerr << "ERROR: Invalid inputs\nUsage:\n";
-    std::cerr << "  Single: ./density_calculator.exe <input file> <dr> [1 (debug) [1 (verbose)]] " << std::endl;
-    std::cerr << "  Multiple: ./density_calculator.exe <input directory> <first file number> <last file number> <file number step> <dr> [1 (debug) [1 (verbose)]]" << std::endl;
+    std::cerr << "  Single: ./dwarf_galaxy_analyzer.exe <input file> <dr> [1 (debug) [1 (verbose)]] " << std::endl;
+    std::cerr << "  Multiple: ./dwarf_galaxy_analyzer.exe <input directory> <first file number> <last file number> <file number step> <dr> [1 (debug) [1 (verbose)]]" << std::endl;
     return 1;
   }
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
       Frame frame(input_filename, N_BODIES, dr);
       frame.analyze(debug, verbose);
-      frame.output_csv();
+      frame.output_csv(argv[5]);
     }
   }
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     // analyzing
     Frame frame(input_filename, N_BODIES, dr);
     frame.analyze(debug, verbose);
-    frame.output_csv();
+    frame.output_csv(argv[2]);
   }
 
   // successful process
