@@ -2,13 +2,13 @@
 
 # how to use
 usage() {
-	echo "Usage: $0 <input directory> <first file number> <last file number> <file number step> <dr> [-h] [-c]"
+	echo "Usage: $0 <input .out file> <dr> [-h] [-c]"
 	echo "   -h: Help; print usage"
 	echo "   -c: Rebuild and clear output directory"
 	exit 1
 }
 
-# parsing arguments; TOFIX: flags not working
+# TOFIX: parsing arguments
 while getopts "hc:" flag; do
 	case $flag in
 		h)
@@ -31,9 +31,9 @@ if [ "$clean_project" = true ]; then
 	make clean
 	echo "Rebuilding..."
 	mkdir output
-	make auto
+	make
 	echo ""
 fi
 
 # running
-build/density_auto_calculator.exe $1 $2 $3 $4 $5
+build/dwarf_galaxy_analyzer.exe $1 $2 $3 $4 $5 $6 $7

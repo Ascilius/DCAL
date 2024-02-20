@@ -1,10 +1,27 @@
-# (Shell) Density Calculator (DCAL)
-A tool I wrote for calculating shell densities from .out files from [MilkyWay@home](https://github.com/Milkyway-at-home/milkywayathome_client)
+# Dwarf Galaxy Analyzer (DGA)
+Formerly the (Shell) Density Calculator (DCAL).
+A set of tools for analyzing dwarf galaxies using .out files from [MilkyWay@home](https://github.com/Milkyway-at-home/milkywayathome_client).
 
 ### todo
- - fix run_dcal.sh
+ - fix run_dga.sh
     - flags won't work :(
- - automate R plotting
+ - automate R plotting immediate after DGA analysis
+
+### v5
+ - project renamed to Dwarf Galaxy Analyzer (DGA)
+ - density_calculator.cpp and SIDM_profile.cpp removed
+    - single program now handles both single and multiple step processing
+ - density_auto_calculator.cpp renamed to main.cpp
+    - profile functions moved to profile.cpp
+       - added Plummer model function
+    - frame analyzing functions moved to frame.cpp
+       - each frame is read into Frame objects
+       - now outputs much more information
+          - 4 sections
+         1. universal data: bin min/max, r, a, v
+         2. baryonic matter: baryonic body count, baryonic mass, baryonic density, Plummer mass, Plummer density
+         3. same as 2 but for dark matter (and Plummer model is replaced with SIDM model)
+         4. same as 2 but the sum of 2 and 3 (Plummer and SIDM models are just added on top of each other)
 
 ### v4
  - polished density_calculator.cpp and SIDM_profile.cpp

@@ -3,11 +3,11 @@ library(tidyverse)
 
 # input parameters
 FILE_START <- 9
-FILE_END <- 1939
+FILE_END <- 109
 FILE_STEP <- 10
 dr <- 0.01
 x_limit <- 20
-y_limit <- 0.30
+y_limit <- 0.4
 
 i <- FILE_START
 while(i <= FILE_END) {
