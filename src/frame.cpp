@@ -7,14 +7,10 @@
 #include "bin.h"
 #include "frame.h"
 #include "io_helper.h"
-#include "profiles.h"
-
-#define N_BODIES_LIGHT 20000
-#define N_BODIES_DARK 20000
 
 // -----------------------------------------------------------------------------------------------------------------------------
-// TODO: reading .out file and hashing data into histogram
-void Frame::analyze(const bool& debug, const bool& verbose) {
+// reading .out file and hashing data into histogram
+int Frame::analyze(const bool& debug, const bool& verbose) {
   // opening file
   std::ifstream input_file(input_filename);
   if (!input_file.good()) {
@@ -76,6 +72,8 @@ void Frame::analyze(const bool& debug, const bool& verbose) {
 
     read_double(input_file);            // v_los (unused)
 
+    clear_line(input_file); 		        // clear the rest of the line (TOFIX: out files from older versions of mwah need this but the current version does not)
+
     if (debug and (i < 5 or verbose))
     	std::cout << "Debug: Body " << (i+1) << ": " << x << " " << y << " " << z << " " << m << "\n";
 
@@ -131,13 +129,9 @@ void Frame::analyze(const bool& debug, const bool& verbose) {
 
 	  // baryonic
 	  double p_bary = bin->m_bary / v;
-	  double p_plum = plum_func(r);
-	  double m_plum = p_plum * v;
 	  
 		// dark matter
 	  double p_dark = bin->m_dark / v;
-	  double p_sidm = sidm_func(r);
-	  double m_sidm = p_sidm * v;
 
 	  // saving
 	  bin->r_min = r_min;
@@ -145,29 +139,21 @@ void Frame::analyze(const bool& debug, const bool& verbose) {
 	  bin->r = r;
 	  bin->a = a;
 	  bin->v = v;
-	  
 	  bin->p_bary = p_bary;
-	  bin->m_plum = m_plum;
-	  bin->p_plum = p_plum;
-	  
 	  bin->p_dark = p_dark;
-	  bin->m_sidm = m_sidm;
-		bin->p_sidm = p_sidm;
-	  
-	  // all matter
 	  bin->n_total = bin->n_bary + bin->n_dark;
 	  bin->m_total = bin->m_bary + bin->m_dark;
 	  bin->p_total = p_bary + p_dark;
-	  bin->m_total_model = m_plum + m_sidm;
-    bin->p_total_model = p_plum + p_sidm;
 	}
 
   if (debug and verbose)
   	std::cout << "Debug: histogram:\n" << *(this) << "\n";
+
+  return n_bins;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------
-// TODO: outputting to csv file
+// outputting to csv file
 void Frame::output_csv(const std::string dr_str) {
 	// generating output file name
 	size_t i = input_filename.rfind('/');
@@ -191,10 +177,10 @@ void Frame::output_csv(const std::string dr_str) {
 // -----------------------------------------------------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out, const Frame& frame) {
 	// column headers
-	out << "r_min (kpc), r_max (kpc), r (kpc), a (kpc^2), v (kpc^3), , "; // universal
-	out << "n_bary, m_bary (SMU), p_bary (SMU/kpc^3), m_plum (SMU), p_plum (SMU/kpc^3), , "; // baryonic
-	out << "n_dark, m_dark (SMU), p_dark (SMU/kpc^3), m_sidm (SMU), p_sidm (SMU/kpc^3), , "; // dark matter
-	out << "n_total, m_total (SMU), p_total (SMU/kpc^3), m_total_model (SMU), p_total_model (SMU/kpc^3)"; // both/all matter
+	out << "r_min (kpc), r_max (kpc), r (kpc), a (kpc^2), v (kpc^3), "; // universal
+	out << "n_bary, m_bary (SMU), p_bary (SMU/kpc^3), "; // baryonic
+	out << "n_dark, m_dark (SMU), p_dark (SMU/kpc^3), "; // dark matter
+	out << "n_total, m_total (SMU), p_total (SMU/kpc^3)"; // both/all matter
 
 	// actual data
 	const std::vector<Bin> histogram = frame.get_histo();
@@ -203,32 +189,26 @@ std::ostream& operator<<(std::ostream& out, const Frame& frame) {
 		const Bin* bin = &(histogram[i]);
 
 		// universal
-	  out << "\n" << bin->r_min << ", ";         // minimum radial distance from galactic center of mass (kpc)
+	  out << "\n" << bin->r_min << ", "; // minimum radial distance from galactic center of mass (kpc)
 	  out << bin->r_max << ", ";         // maximum radial distance (kpc)
 	  out << bin->r << ", ";             // distance used for this bin's area/volume/density calculations (kpc)
 	  out << bin->a << ", ";             // shell area (kpc^2)
-	  out << bin->v << ", , ";             // shell volume (kpc^3)
+	  out << bin->v << ", ";             // shell volume (kpc^3)
 	  
 	  // baryonic
-	  out << bin->n_bary << ", ";           // baryonic body count
+	  out << bin->n_bary << ", ";        // baryonic body count
 	  out << bin->m_bary << ", ";        // total baryonic mass in this bin (SMU)
 	  out << bin->p_bary << ", ";        // baryonic density (SMU/kpc^3)
-	  out << bin->m_plum << ", ";        // mass calculated from plum_p * v (SMU)
-	  out << bin->p_plum << ", , ";        // density calculated from Plummer function (SMU/kpc^3)
 	  
 	  // dark matter
-	  out << bin->n_dark << ", ";           // dark matter body count
+	  out << bin->n_dark << ", ";        // dark matter body count
 	  out << bin->m_dark << ", ";        // total dark mass in this bin (SMU)
 	  out << bin->p_dark << ", ";        // dark density (SMU/kpc^3)
-	  out << bin->m_sidm << ", ";        // mass calculated from sidm_p * v (SMU)
-	  out << bin->p_sidm << ", , ";        // density calculated from SIDM function (SMU/kpc^3)
 	  
 	  // all matter
-	  out << bin->n_total << ", ";          // total body count
+	  out << bin->n_total << ", ";       // total body count
 	  out << bin->m_total << ", ";       // total mass (SMU)
-	  out << bin->p_total << ", ";       // total density (SMU/kpc^3)
-	  out << bin->m_total_model << ", "; // total mass calculated from total_model_p * v (SMU)
-	  out << bin->p_total_model; // total density calculated from Plummer model and SIDM function (SMU/kpc^3)
+	  out << bin->p_total;               // total density (SMU/kpc^3)
 	}
 
 	return out;

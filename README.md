@@ -2,12 +2,26 @@
 Formerly the (Shell) Density Calculator (DCAL).
 A set of tools for analyzing dwarf galaxies using .out files from [MilkyWay@home](https://github.com/Milkyway-at-home/milkywayathome_client).
 
+### How to Use
+See usage:
+```
+./build/dwarf_galaxy_analyzer.exe
+```
+Feel free to contact me at jasonkim050@gmail.com or through Discord (@ ascilius)
+
 ### todo
  - fix run_dga.sh
     - flags won't work :(
  - automate R plotting immediate after DGA analysis
- - optimize: generate Plummer and SIDM curves once, output in separate file
  - figure out how to adjust graph headers
+
+### v5.1
+ - added single/multiple file processing (see usage for more details)
+ - added profile selection functionality
+    - baryons - only plummer
+    - dark matter - plummer/nfw/sidm
+ - optimization: generates profile curves once, outputs in separate file (e.g. "plummer_nfw_0.01.csv")
+ - added presentation and report (in docs)
 
 ### v5
  - project renamed to Dwarf Galaxy Analyzer (DGA)
